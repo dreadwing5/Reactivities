@@ -10,12 +10,12 @@ namespace API.Controllers
     {
 
         [HttpGet] //api/activities
-        public async Task<ActionResult<List<Activity>>> GetActivites(CancellationToken ct)
+        public async Task<ActionResult<List<Activity>>> GetActivites()
 
         {
             // WTH is this?
 
-            return await Mediator.Send(new List.Query(), ct);
+            return await Mediator.Send(new List.Query());
         }
 
         // Route Parameter //api/activities/id
