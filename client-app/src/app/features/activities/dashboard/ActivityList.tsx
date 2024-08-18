@@ -1,21 +1,17 @@
 import { SyntheticEvent, useState } from "react";
 import { Button, Item, Label, Segment } from "semantic-ui-react";
-import { Activity } from "../../../models/activity";
+import { useStore } from "../../../stores/store";
+import { observer } from "mobx-react-lite";
 
-interface Props {
-  activities: Activity[];
-  selectActivity: (id: string) => void;
-  deleteActivity: (id: string) => void;
-  submiting: boolean;
-}
-export default function ActivityList({
-  activities,
-  selectActivity,
-  deleteActivity,
-  submiting,
-}: Props) {
+export default observer(function ActivityList() {
+  const { activityStore } = useStore();
+
+  const { activitiesByDate, deleteActivity, loading } = activityStore;
+
+  /* I Like this approach,
+      I would have used nested component and then use React Query to handle the loading of each individual component 
+  */
   const [target, setTarget] = useState("");
-
   function handleActvityDelete(
     e: SyntheticEvent<HTMLButtonElement>,
     id: string
@@ -26,7 +22,7 @@ export default function ActivityList({
   return (
     <Segment>
       <Item.Group divided>
-        {activities.map((activity) => (
+        {activitiesByDate.map((activity) => (
           <Item key={activity.id}>
             <Item.Content>
               <Item.Header as="a">{activity.title}</Item.Header>
@@ -39,7 +35,7 @@ export default function ActivityList({
               </Item.Description>
               <Item.Extra>
                 <Button
-                  onClick={() => selectActivity(activity.id)}
+                  onClick={() => activityStore.selectActivity(activity.id)}
                   floated="right"
                   content="View"
                   color="blue"
@@ -47,7 +43,7 @@ export default function ActivityList({
                 <Button
                   name={activity.id}
                   onClick={(e) => handleActvityDelete(e, activity.id)}
-                  loading={submiting && target == activity.id}
+                  loading={loading && target == activity.id}
                   floated="right"
                   content="Delete"
                   color="red"
@@ -60,4 +56,4 @@ export default function ActivityList({
       </Item.Group>
     </Segment>
   );
-}
+});
