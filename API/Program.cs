@@ -5,6 +5,10 @@ using API.Middleware;
 using Serilog;
 using Serilog.Events;
 using Microsoft.AspNetCore.HttpLogging;
+using Microsoft.AspNetCore.Identity;
+using Domain;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 // Configure Serilog
@@ -21,8 +25,13 @@ builder.Host.UseSerilog(); // Use Serilog for logging
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(opt =>
+{
+    var policy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+    opt.Filters.Add(new AuthorizeFilter(policy));
+});
 builder.Services.AddApplicationServices(builder.Configuration);
+builder.Services.AddIdentityServices(builder.Configuration);
 
 // Add HTTP logging
 builder.Services.AddHttpLogging(logging =>
@@ -49,6 +58,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseCors("CorsPolicy");
@@ -76,6 +87,8 @@ try
     Log.Information("Starting application");
     var context = services.GetRequiredService<DataContext>();
 
+    var userManager = services.GetRequiredService<UserManager<AppUser>>();
+
     // Migrate DB
     await context.Database.MigrateAsync();
     Log.Information("Database migrated successfully");
@@ -85,7 +98,7 @@ try
     Log.Information("Database connected successfully");
 
     // Seed DB
-    await Seed.SeedData(context);
+    await Seed.SeedData(context, userManager);
     Log.Information("Database seeded successfully");
 
     var serverAddresses = app.Urls;
