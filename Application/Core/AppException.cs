@@ -1,5 +1,7 @@
 namespace Application.Core
 {
+
+    /* What happens and where did it happened ? */
     public class AppException
     {
         public AppException(int statusCode, string message, string details = null)
