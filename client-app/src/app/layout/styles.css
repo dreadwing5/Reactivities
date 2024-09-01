@@ -44,4 +44,17 @@ ui.inverted.top.fixed.menu {
     font-size: 1.7em;
     font-weight: normal;
   }
-  
+
+/* Ensure the wrapper takes full width */
+.react-datepicker-wrapper {
+  width: 100%;
+}
+
+/* Position the popup to the left and below the input */
+.react-datepicker-popper {
+  left: 0 !important;
+  top: 70% !important;
+  transform: translate(0, 0) !important;
+}
+
+
