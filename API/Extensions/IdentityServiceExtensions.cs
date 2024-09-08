@@ -19,7 +19,7 @@ namespace API.Extensions
             services.AddIdentityCore<AppUser>(opt =>
             {
                 opt.Password.RequireNonAlphanumeric = false;
-                opt.User.RequireUniqueEmail = true;
+                opt.User.RequireUniqueEmail = false; //Handling in Custom validation Error Message
 
 
             })
