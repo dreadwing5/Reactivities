@@ -1,79 +1,208 @@
-# Entity Framework Relationships
+# Entity Framework Relationships and Infrastructure Project
 
-## Overview
-
-This chapter covers Entity Framework Core relationships, focusing on how tables in our database relate to each other, particularly in the context of users attending activities.
-
-## Learning Goals
-
-1. Understand and implement Entity Framework Relationships
-2. Learn techniques for loading related entities
-3. Utilize AutoMapper queryable extensions
-4. Add and integrate an Infrastructure project
-
-## Topics
-
-- [Entity Framework Relationships](#entity-framework-relationships)
-  - [Overview](#overview)
-  - [Learning Goals](#learning-goals)
-  - [Topics](#topics)
-    - [One-to-Many Relationships](#one-to-many-relationships)
-      - [Implementation](#implementation)
-    - [Many-to-Many Relationships](#many-to-many-relationships)
-      - [Implementation](#implementation-1)
-    - [One-to-One Relationships](#one-to-one-relationships)
-      - [Implementation](#implementation-2)
-    - [Configuring Relationships](#configuring-relationships)
-  - [Adding an Infrastructure Project](#adding-an-infrastructure-project)
-    - [User Accessor](#user-accessor)
-  - [Q\&A](#qa)
+## 1. Entity Framework Relationships
 
 ### One-to-Many Relationships
 
-One-to-many relationships in Entity Framework occur when one entity can have multiple related entities. For example, a user can have many photos.
+- One entity can have multiple related entities (e.g., a user can have many photos)
+- EF Core configures these by convention
+- Example:
 
-#### Implementation
+  ```csharp
+  public class User
+  {
+      public int Id { get; set; }
+      public string Name { get; set; }
+      public ICollection<Photo> Photos { get; set; }
+  }
 
-Entity Framework is good at configuring one-to-many relationships by convention. For example, adding a collection of photos to a user entity would automatically set up the necessary foreign key relationship.
+  public class Photo
+  {
+      public int Id { get; set; }
+      public string Url { get; set; }
+      public int UserId { get; set; }
+      public User User { get; set; }
+  }
+  ```
 
 ### Many-to-Many Relationships
 
-Many-to-many relationships occur when multiple entities can be related to multiple entities of another type. In this context, users can attend many activities, and activities can have many attendees (users).
-
-#### Implementation
-
-While Entity Framework can now configure many-to-many relationships by convention, this section focuses on creating a custom join table for additional flexibility. This allows tracking extra information like the date a user joined an activity or whether a user is the host.
+- Multiple entities can be related to multiple entities of another type
+- In this project: Users can attend many activities, and activities can have many attendees
+- Custom join table used for flexibility:
+  ```csharp
+  public class ActivityAttendee
+  {
+      public string AppUserId { get; set; }
+      public AppUser AppUser { get; set; }
+      public Guid ActivityId { get; set; }
+      public Activity Activity { get; set; }
+      public bool IsHost { get; set; }
+  }
+  ```
 
 ### One-to-One Relationships
 
-One-to-one relationships occur when one entity is related to exactly one instance of another entity. An example mentioned is a user having one address.
+- One entity is related to exactly one instance of another entity
+- EF Core can handle these by convention
 
-#### Implementation
+## 2. Adding an Infrastructure Project
 
-Entity Framework can handle one-to-one relationships by convention, similar to one-to-many relationships.
+### Purpose
 
-### Configuring Relationships
-
-The transcript doesn't provide specific details on configuring relationships, but it mentions that Entity Framework can work out relationships by convention in many cases.
-
-## Adding an Infrastructure Project
-
-An Infrastructure project is introduced to maintain clean architecture principles:
-
-1. It has a dependency on the application layer but not vice versa.
-2. It allows the application layer to remain independent of authentication concerns.
-3. It implements interfaces defined in the application layer.
+- Maintains clean architecture principles
+- Implements interfaces defined in the application layer
+- Keeps the application layer independent of authentication concerns
 
 ### User Accessor
 
-A key component of the Infrastructure project is the User Accessor:
+- Interface defined in application layer:
+  ```csharp
+  public interface IUserAccessor
+  {
+      string GetUsername();
+  }
+  ```
+- Implementation in infrastructure project:
 
-1. An interface for getting a user's username is defined in the application layer.
-2. The implementation is in the infrastructure project.
-3. It accesses the HttpContext to retrieve the username from the token.
+  ```csharp
+  public class UserAccessor : IUserAccessor
+  {
+      private readonly IHttpContextAccessor _httpContextAccessor;
 
-This approach ensures that the application layer remains agnostic to authentication methods, adhering to clean architecture principles. If the authentication method changes (e.g., from API to console), only the implementation in the infrastructure layer would need to change, leaving the application logic untouched.
+      public UserAccessor(IHttpContextAccessor httpContextAccessor)
+      {
+          _httpContextAccessor = httpContextAccessor;
+      }
 
-## Q&A
+      public string GetUsername()
+      {
+          return _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Name);
+      }
+  }
+  ```
 
-The transcript doesn't provide specific Q&A content, so this section would need to be filled with relevant questions and answers based on the topics covered.
+## 3. Authorization Policy
+
+### Steps to Create an Authorization Handler
+
+1. Create a Requirement Class:
+
+   ```csharp
+   public class IsHostRequirement : IAuthorizationRequirement
+   {
+       // This can be empty if no additional data is needed
+   }
+   ```
+
+2. Create a Handler Class:
+
+   ```csharp
+   public class IsHostRequirementHandler : AuthorizationHandler<IsHostRequirement>
+   {
+       private readonly DataContext _dbContext;
+       private readonly IHttpContextAccessor _httpContextAccessor;
+
+       public IsHostRequirementHandler(DataContext dbContext, IHttpContextAccessor httpContextAccessor)
+       {
+           _httpContextAccessor = httpContextAccessor;
+           _dbContext = dbContext;
+       }
+
+       protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, IsHostRequirement requirement)
+       {
+           // Implementation goes here
+       }
+   }
+   ```
+
+3. Implement the Handler Logic:
+
+   - Get the user ID from the claims
+   - Get the activity ID from the route values
+   - Check if the user is the host of the activity
+   - If yes, call `context.Succeed(requirement)`
+
+4. Register the Policy and Handler:
+
+   ```csharp
+   services.AddAuthorization(opt =>
+   {
+       opt.AddPolicy("IsActivityHost", policy =>
+       {
+           policy.Requirements.Add(new IsHostRequirement());
+       });
+   });
+   services.AddTransient<IAuthorizationHandler, IsHostRequirementHandler>();
+   ```
+
+5. Use the Policy in Controllers:
+   ```csharp
+   [Authorize(Policy = "IsActivityHost")]
+   [HttpPut("{id}")]
+   public async Task<IActionResult> EditActivity(Guid id, Activity activity)
+   {
+       // Implementation
+   }
+   ```
+
+### Importance of AsNoTracking()
+
+- Used in the authorization handler due to its transient scope
+- Prevents issues with Entity Framework's change tracking
+- Ensures fresh data is always used for authorization checks
+- Avoids conflicts with subsequent edit operations
+- Improves performance for read-only operations
+
+## 4. Loading Related Data
+
+### Eager Loading
+
+- Loads related entities along with the main entity in a single query
+- Example:
+  ```csharp
+  var activities = await _context.Activities
+      .Include(a => a.Attendees)
+          .ThenInclude(u => u.AppUser)
+      .ToListAsync();
+  ```
+
+### Lazy Loading
+
+- Automatically loads related entities when accessed
+- Not recommended due to potential performance issues
+
+### Projection (Using AutoMapper)
+
+- Maps entities to DTOs while loading, optimizing the query
+- Example:
+  ```csharp
+  var activities = await _context.Activities
+      .ProjectTo<ActivityDto>(_mapper.ConfigurationProvider)
+      .ToListAsync();
+  ```
+
+## 5. Optimizing SQL Queries
+
+- Use projection to select only needed fields
+- Avoid unnecessary eager loading
+- Use `AsNoTracking()` for read-only queries
+
+## 6. AutoMapper Configuration
+
+```csharp
+public class MappingProfile : Profile
+{
+    public MappingProfile()
+    {
+        CreateMap<Activity, ActivityDto>()
+            .ForMember(d => d.HostUsername, o => o.MapFrom(s =>
+                s.Attendees.FirstOrDefault(x => x.IsHost).AppUser.UserName));
+
+        CreateMap<ActivityAttendee, Profiles.Profile>()
+            .ForMember(d => d.DisplayName, o => o.MapFrom(s => s.AppUser.DisplayName))
+            .ForMember(d => d.Username, o => o.MapFrom(s => s.AppUser.UserName))
+            .ForMember(d => d.Bio, o => o.MapFrom(s => s.AppUser.Bio));
+    }
+}
+```
