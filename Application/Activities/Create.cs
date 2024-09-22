@@ -1,8 +1,10 @@
 
 using Application.Core;
+using Application.Interfaces;
 using Domain;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Persistence;
 
 namespace Application.Activities
@@ -12,6 +14,8 @@ namespace Application.Activities
         public class Command : IRequest<Result<Unit>>
         {
             public Activity Activity { get; set; }
+
+            public List<ActivityAttendee> attendees = [];
         }
 
         public class CommandValidator : AbstractValidator<Command>
@@ -27,16 +31,36 @@ namespace Application.Activities
         {
 
             private readonly DataContext _context;
+            private readonly IUserAccessor _userAccessor;
 
-            public Handler(DataContext context)
+            public Handler(DataContext context, IUserAccessor userAccessor)
             {
+                _userAccessor = userAccessor;
                 _context = context;
 
             }
 
             public async Task<Result<Unit>> Handle(Command request, CancellationToken cancellationToken)
             {
-                _context.Activities.Add(request.Activity);
+
+                var user = await _context.Users.FirstOrDefaultAsync(x => x.UserName == _userAccessor.GetUsername());
+
+
+                var activity = request.Activity;
+                activity.Attendees =
+                [
+                    new ActivityAttendee
+                    {
+                        AppUser = user,
+                        Activity = activity,
+                        IsHost = true
+                    }
+                ];
+                // is it going to save all the data or just references?
+
+                // For example : How does it get the AppUserId, ActivityId, etc?
+
+                _context.Activities.Add(activity);
 
                 var result = await _context.SaveChangesAsync() > 0;
 

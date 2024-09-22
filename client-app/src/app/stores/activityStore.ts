@@ -103,6 +103,15 @@ export default class ActivityStore {
       });
     } catch (error) {
       console.error(error);
+
+      //runInAction is used to update the state of the store but why runinAction,
+      // can't we just update the state directly?
+      // runInAction is used here for a few important reasons:
+      // 1. MobX enforces that observable state should only be modified within actions.
+      // 2. Asynchronous operations (like API calls) can complete outside of the current action.
+      // 3. runInAction creates a temporary action that allows us to update multiple observables.
+      // 4. It ensures that all state changes are applied atomically, maintaining consistency.
+      // 5. It helps MobX optimize re-renders by batching updates together.
       runInAction(() => {
         this.loading = false;
       });

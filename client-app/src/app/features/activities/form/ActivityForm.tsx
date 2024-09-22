@@ -70,7 +70,7 @@ export default observer(function ActivityForm() {
       <Header content="Activity Details" sub color="teal" />
       <Formik
         validationSchema={validationSchema}
-        enableReinitialize
+        enableReinitialize // to reinitialize the form when the activity changes
         initialValues={activity}
         onSubmit={(values) => handleFormSubmit(values)}
       >

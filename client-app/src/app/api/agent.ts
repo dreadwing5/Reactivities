@@ -10,14 +10,17 @@ const sleep = (delay: number) => {
     setTimeout(resolve, delay);
   });
 };
-
 axios.defaults.baseURL = "http://localhost:5000/api";
+
+/* Adding Auth Token to each request using Interceptors */
 
 axios.interceptors.request.use((config) => {
   const token = store.commonStore.token;
   if (token && config.headers) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+
+/* Handling Errors using Interceptors */
 
 axios.interceptors.response.use(
   async (response) => {
@@ -36,6 +39,12 @@ axios.interceptors.response.use(
           router.navigate("/not-found");
         }
         if (data.errors) {
+          // We need to destructure the data.errors object for a few reasons:
+          // 1. To extract individual error messages from the nested structure.
+          // 2. To create a flat array of error messages that's easier to handle.
+          // 3. To ensure we capture all error messages, even if they're nested differently.
+          // 4. To standardize the error format for consistent error handling in our app.
+          // 5. To make it easier to display these errors to the user in a meaningful way.
           const modalStateErrors = [];
           for (const key in data.errors) {
             if (data.errors[key]) {
@@ -68,6 +77,8 @@ axios.interceptors.response.use(
     }
   }
 );
+
+/* Type safe response for axios that can be used for any response */
 
 const responseBody = <T>(response: AxiosResponse<T>) => response.data;
 

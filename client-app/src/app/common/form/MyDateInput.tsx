@@ -2,7 +2,7 @@ import { useField } from "formik";
 import { Form, Label } from "semantic-ui-react";
 import DatePicker, { DatePickerProps } from "react-datepicker";
 
-// Partila -> we don't need everything from DateProps
+// Partial -> we don't need everything from DateProps
 
 export default function MyTextInput(props: Partial<DatePickerProps>) {
   const [field, meta, helpers] = useField(props.name!);
