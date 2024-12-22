@@ -19,24 +19,20 @@ export default class UserStore {
     const user = await agent.Account.login(creds);
     store.commonStore.setToken(user.token);
 
-    runInAction(() => (this.user = user)); // Thios is happening in next tick
+    runInAction(() => (this.user = user)); // This is happening in next tick
 
     router.navigate("/activities");
     store.modalStore.closeModal();
-
-    console.log(user);
   };
 
   register = async (creds: UserFromValues) => {
     const user = await agent.Account.register(creds);
     store.commonStore.setToken(user.token);
 
-    runInAction(() => (this.user = user)); // Thios is happening in next tick
+    runInAction(() => (this.user = user)); // This is happening in next tick
 
     router.navigate("/activities");
     store.modalStore.closeModal();
-
-    console.log(user);
   };
 
   logout = () => {
