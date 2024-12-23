@@ -12,8 +12,6 @@ export default observer(function ProfilePage() {
   const { profileStore } = store;
   const { profile, loadProfile, loadingProfile } = profileStore;
 
-  console.log(profile);
-
   useEffect(() => {
     loadProfile(username!);
   }, [loadProfile, username]);
