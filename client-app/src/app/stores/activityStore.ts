@@ -216,4 +216,19 @@ export default class ActivityStore {
       runInAction(() => (this.loading = false));
     }
   };
+
+  updateImage = (url: string) => {
+    this.activityRegistry.forEach((activity) => {
+      if (activity.host) {
+        activity.host.image = url;
+      }
+      if (activity.attendees) {
+        activity.attendees.forEach((attendee) => {
+          if (attendee.username === store.userStore.user?.userName) {
+            attendee.image = url;
+          }
+        });
+      }
+    });
+  };
 }

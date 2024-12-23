@@ -68,6 +68,7 @@ export default class ProfileStore {
         if (this.profile && this.profile.photos) {
           this.profile.photos.find((p) => p.isMain)!.isMain = false;
           this.profile.photos.find((p) => p.id === photo.id)!.isMain = true;
+          store.activityStore.updateImage(photo.url);
           this.profile.image = photo.url;
           this.loading = false;
         }
