@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Domain;
 
 namespace Application.Profiles
@@ -6,6 +7,7 @@ namespace Application.Profiles
     {
         public string Username { get; set; }
 
+        [Required]
         public string DisplayName { get; set; }
         public string Bio { get; set; }
 
