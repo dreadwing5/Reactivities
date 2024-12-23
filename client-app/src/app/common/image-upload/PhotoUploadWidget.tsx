@@ -6,14 +6,19 @@ import { useEffect, useState } from "react";
 import { IFile } from "../../models/types";
 import PhotoWidgetCropper from "./PhotoWidgetCropper";
 
-export default function PhotoUploadWidget() {
+interface Props {
+  uploading: boolean;
+  uploadPhoto: (file: Blob) => void;
+}
+
+export default function PhotoUploadWidget({ uploading, uploadPhoto }: Props) {
   const [files, setFiles] = useState<IFile[]>([]);
   const [cropper, setCropper] = useState<Cropper>();
 
   function onCrop() {
     if (cropper) {
       cropper.getCroppedCanvas().toBlob((blob) => {
-        console.log(blob);
+        uploadPhoto(blob!);
       });
     }
   }
@@ -54,9 +59,18 @@ export default function PhotoUploadWidget() {
               style={{ minHeight: 200, overflow: "hidden" }}
             />
 
-            <Button.Group widths={2}>
-              <Button onClick={onCrop} positive icon="check" />
-              <Button onClick={() => setFiles([])} icon="close" />
+            <Button.Group style={{ marginTop: 5 }} widths={2}>
+              <Button
+                loading={uploading}
+                onClick={onCrop}
+                positive
+                icon="check"
+              />
+              <Button
+                disabled={uploading}
+                onClick={() => setFiles([])}
+                icon="close"
+              />
             </Button.Group>
           </>
         )}

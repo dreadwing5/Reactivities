@@ -45,4 +45,10 @@ export default class UserStore {
     const user = await agent.Account.current();
     runInAction(() => (this.user = user));
   };
+
+  setImage = (url: string) => {
+    if (this.user) {
+      this.user.image = url;
+    }
+  };
 }
