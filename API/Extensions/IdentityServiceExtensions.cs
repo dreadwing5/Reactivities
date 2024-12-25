@@ -27,7 +27,6 @@ namespace API.Extensions
             })
             .AddEntityFrameworkStores<DataContext>();
 
-
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["TokenKey"]));
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(opt =>
@@ -38,6 +37,21 @@ namespace API.Extensions
                     IssuerSigningKey = key,
                     ValidateIssuer = false,
                     ValidateAudience = false
+                };
+                opt.Events = new JwtBearerEvents
+                {
+                    // Allows the access token to be sent in the query string
+
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chat"))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    }
                 };
             });
             services.AddAuthorization(opt => opt.AddPolicy("IsActivityHost", policy =>

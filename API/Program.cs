@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using API.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 // Configure Serilog
@@ -76,6 +77,7 @@ app.Use(async (context, next) =>
 });
 
 app.MapControllers();
+app.MapHub<ChatHub>("/chat");
 
 // Cleanup unused code, this will be destroyed once we have used
 
