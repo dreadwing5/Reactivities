@@ -33,6 +33,8 @@ namespace Application.Comments
                     .ProjectTo<CommentDto>(_mapper.ConfigurationProvider)
                     .ToListAsync();
 
+
+
                 return Result<List<CommentDto>>.Success(comments);
             }
         }
