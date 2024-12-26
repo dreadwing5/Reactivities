@@ -1,9 +1,11 @@
 import { observer } from "mobx-react-lite";
 import { useEffect } from "react";
-import { Segment, Header, Comment, Form, Button } from "semantic-ui-react";
+import { Segment, Header, Comment, Button } from "semantic-ui-react";
 import { useStore } from "../../../stores/store";
 import { formatDistanceToNow } from "date-fns";
 import { Link } from "react-router-dom";
+import { Formik, Form } from "formik";
+import MyTextArea from "../../../common/form/MyTextArea";
 
 interface Props {
   activityId: string;
@@ -32,7 +34,7 @@ export default observer(function ActivityDetailedChat({ activityId }: Props) {
       >
         <Header>Chat about this event</Header>
       </Segment>
-      <Segment attached>
+      <Segment attached clearing>
         <Comment.Group>
           {commentStore.comments.map((comment) => (
             <Comment key={comment.id}>
@@ -49,15 +51,28 @@ export default observer(function ActivityDetailedChat({ activityId }: Props) {
             </Comment>
           ))}
 
-          <Form reply>
-            <Form.TextArea />
-            <Button
-              content="Add Reply"
-              labelPosition="left"
-              icon="edit"
-              primary
-            />
-          </Form>
+          <Formik
+            onSubmit={(values, { resetForm }) => {
+              commentStore.addComment(values).then(() => resetForm());
+            }}
+            initialValues={{ body: "" }}
+          >
+            {({ handleSubmit, isValid, isSubmitting }) => (
+              <Form className="ui form" onSubmit={handleSubmit}>
+                <MyTextArea placeholder="Add comment" name="body" rows={2} />
+                <Button
+                  loading={isSubmitting}
+                  disabled={!isValid || isSubmitting}
+                  content="Add Reply"
+                  labelPosition="left"
+                  icon="edit"
+                  type="submit"
+                  primary
+                  floated="right"
+                />
+              </Form>
+            )}
+          </Formik>
         </Comment.Group>
       </Segment>
     </>

@@ -52,7 +52,12 @@ export default class CommentStore {
     this.stopHubConnection();
   };
 
-  addComment = (comment: ChatComment) => {
-    this.comments.push(comment);
+  addComment = async (values: { body: string; activityId?: string }) => {
+    values.activityId = store.activityStore.selectedActivity?.id;
+    try {
+      await this.hubConnection?.invoke("SendComment", values);
+    } catch (error) {
+      console.log(error);
+    }
   };
 }
