@@ -1,11 +1,12 @@
 import { observer } from "mobx-react-lite";
 import { useEffect } from "react";
-import { Segment, Header, Comment, Button } from "semantic-ui-react";
+import { Segment, Header, Comment, Button, Loader } from "semantic-ui-react";
 import { useStore } from "../../../stores/store";
 import { formatDistanceToNow } from "date-fns";
 import { Link } from "react-router-dom";
-import { Formik, Form } from "formik";
+import { Formik, Form, Field, FieldProps } from "formik";
 import MyTextArea from "../../../common/form/MyTextArea";
+import * as Yup from "yup";
 
 interface Props {
   activityId: string;
@@ -46,7 +47,13 @@ export default observer(function ActivityDetailedChat({ activityId }: Props) {
                 <Comment.Metadata>
                   <div>{formatDistanceToNow(comment.createdAt)}</div>
                 </Comment.Metadata>
-                <Comment.Text>{comment.body}</Comment.Text>
+                <Comment.Text
+                  style={{
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  {comment.body}
+                </Comment.Text>
               </Comment.Content>
             </Comment>
           ))}
@@ -55,21 +62,35 @@ export default observer(function ActivityDetailedChat({ activityId }: Props) {
             onSubmit={(values, { resetForm }) => {
               commentStore.addComment(values).then(() => resetForm());
             }}
+            validationSchema={Yup.object({
+              body: Yup.string().required("Comment body is required"),
+            })}
             initialValues={{ body: "" }}
           >
             {({ handleSubmit, isValid, isSubmitting }) => (
               <Form className="ui form" onSubmit={handleSubmit}>
-                <MyTextArea placeholder="Add comment" name="body" rows={2} />
-                <Button
-                  loading={isSubmitting}
-                  disabled={!isValid || isSubmitting}
-                  content="Add Reply"
-                  labelPosition="left"
-                  icon="edit"
-                  type="submit"
-                  primary
-                  floated="right"
-                />
+                <Field name="body">
+                  {(props: FieldProps) => (
+                    <div style={{ position: "relative" }}>
+                      <Loader active={isSubmitting} />
+                      <textarea
+                        {...props.field}
+                        rows={2}
+                        placeholder="Enter your comment (Enter to submit, Shift + Enter for new line)"
+                        className="form-control"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && e.shiftKey) {
+                            e.preventDefault();
+                          }
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            if (isValid) handleSubmit();
+                          }
+                        }}
+                      />
+                    </div>
+                  )}
+                </Field>
               </Form>
             )}
           </Formik>
