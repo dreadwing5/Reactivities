@@ -1,4 +1,4 @@
-import { makeAutoObservable, runInAction } from "mobx";
+import { makeAutoObservable, reaction, runInAction } from "mobx";
 import { Activity, ActivityFormValues } from "../models/activity";
 import agent from "../api/agent";
 import { v4 as uuid } from "uuid";
@@ -15,6 +15,7 @@ export default class ActivityStore {
   loadingInitial = false;
   pagination: Pagination | null = null;
   pagingParams = new PagingParams();
+  predicate = new Map().set("all", true);
 
   constructor() {
     // makeObservable(this, {
@@ -22,16 +23,60 @@ export default class ActivityStore {
     //   setTitle: action,
     // });
     makeAutoObservable(this);
+
+    reaction(
+      () => this.predicate.keys(),
+      () => {
+        this.pagingParams = new PagingParams();
+        this.activityRegistry.clear();
+        this.loadActivities();
+      }
+    );
   }
 
   setPagingParams = (pagingParams: PagingParams) => {
     this.pagingParams = pagingParams;
   };
 
+  setPredicate = (key: string, value: string | Date) => {
+    const resetPredicate = () => {
+      this.predicate.forEach((_, key) => {
+        if (key !== "startDate") {
+          this.predicate.delete(key);
+        }
+      });
+    };
+    switch (key) {
+      case "all":
+        resetPredicate();
+        this.predicate.set("all", true);
+        break;
+      case "isGoing":
+        resetPredicate();
+        this.predicate.set("isGoing", value);
+        break;
+      case "isHost":
+        resetPredicate();
+        this.predicate.set("isHost", value);
+        break;
+      case "startDate":
+        this.predicate.delete("startDate"); // we are notgoing to detect change if we use set
+        this.predicate.set("startDate", value);
+        break;
+    }
+  };
+
   get axiosParams() {
     const params = new URLSearchParams();
     params.append("pageNumber", this.pagingParams.pageNumber.toString());
     params.append("pageSize", this.pagingParams.pageSize.toString());
+    this.predicate.forEach((value, key) => {
+      if (key === "startDate") {
+        params.append(key, (value as Date).toISOString());
+      } else {
+        params.append(key, value.toString());
+      }
+    });
     return params;
   }
 
