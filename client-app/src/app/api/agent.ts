@@ -19,8 +19,13 @@ axios.interceptors.request.use((config) => {
 
 /* Handling Errors using Interceptors */
 
+const sleep = (ms: number) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
 axios.interceptors.response.use(
   async (response) => {
+    await sleep(1000);
     const pagination = response.headers["pagination"];
     if (pagination) {
       response.data = new PaginatedResult(
