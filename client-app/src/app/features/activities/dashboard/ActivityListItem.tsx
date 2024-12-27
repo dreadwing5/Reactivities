@@ -9,8 +9,6 @@ interface Props {
   activity: Activity;
 }
 export default function ActivityListItem({ activity }: Props) {
-  console.log(activity.host);
-
   return (
     <Segment.Group>
       <Segment>
