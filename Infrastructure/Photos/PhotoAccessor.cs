@@ -9,7 +9,7 @@ namespace Infrastructure.Photos
 {
     public class PhotoAccessor : IPhotoAccessor
     {
-        private readonly CloudinarySettings _cloudinarySettings;
+
         private readonly Cloudinary _cloudinary;
 
         public PhotoAccessor(IOptions<CloudinarySettings> config)
