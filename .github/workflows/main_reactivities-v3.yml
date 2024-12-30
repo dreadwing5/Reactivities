@@ -26,6 +26,7 @@ jobs:
         with:
           node-version: "20"
           cache: "pnpm"
+          cache-dependency-path: "client-app/pnpm-lock.yaml"
 
       - name: Install deps and build react app
         run: |
