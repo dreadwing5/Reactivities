@@ -52,10 +52,40 @@ var app = builder.Build();
 
 app.UseMiddleware<ExceptionMiddleware>();
 
+app.UseXContentTypeOptions(); // Prevent MIME type sniffing
+
+app.UseReferrerPolicy(opt => opt.NoReferrer()); // Prevent referrer policy
+
+app.UseXXssProtection(opt => opt.EnabledWithBlockMode()); // Prevent XSS attacks
+
+app.UseXfo(opt => opt.Deny()); // Prevent clickjacking
+
+app.UseCsp(opt => opt
+    .BlockAllMixedContent()
+    .StyleSources(s => s.Self().CustomSources("https://fonts.googleapis.com"))
+    .FontSources(s => s.Self().CustomSources("https://fonts.gstatic.com", "data:"))
+    .ImageSources(s => s.Self().CustomSources("blob:", "https://res.cloudinary.com"))
+    .FrameAncestors(s => s.Self())
+    .FormActions(s => s.Self())
+    .ScriptSources(s => s.Self())
+    .ScriptSources(s => s.Self())
+);
+
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+else
+{
+    app.Use(async (context, next) =>
+    {
+        //add HSTS header to response for 1 year
+        context.Response.Headers.Append("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+
+        await next.Invoke();
+    });
 }
 
 app.UseHttpsRedirection();
