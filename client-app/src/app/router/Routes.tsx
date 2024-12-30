@@ -26,7 +26,7 @@ export const routes: RouteObject[] = [
           { path: "activities/:id", element: <ActivityDetails /> },
           { path: "createActivity", element: <ActivityForm key="create" /> },
           { path: "manage/:id", element: <ActivityForm key="manage" /> },
-          { path: "errors", element: <TestErrors /> },
+
           { path: "profiles/:username", element: <ProfilePage /> },
         ],
       },
