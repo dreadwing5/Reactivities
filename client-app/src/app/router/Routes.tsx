@@ -4,7 +4,6 @@ import HomePage from "../features/home/HomePage";
 import ActivityDashboard from "../features/activities/dashboard/ActivityDashboard";
 import ActivityForm from "../features/activities/form/ActivityForm";
 import ActivityDetails from "../features/activities/details/ActivityDetails";
-import TestErrors from "../features/errors/TestError";
 import NotFound from "../features/errors/NotFound";
 import ServerError from "../features/errors/ServerError";
 import LoginForm from "../features/users/LoginForm";
