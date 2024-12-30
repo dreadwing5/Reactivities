@@ -1,4 +1,4 @@
-import { SyntheticEvent, useEffect } from "react";
+import { useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import { Tab, Grid, Header, Card, Image, TabProps } from "semantic-ui-react";
 import { Link } from "react-router-dom";
@@ -21,7 +21,7 @@ export default observer(function ProfileActivities() {
     loadUserActivities(profile!.username);
   }, [loadUserActivities, profile]);
 
-  const handleTabChange = (e: SyntheticEvent, data: TabProps) => {
+  const handleTabChange = (data: TabProps) => {
     loadUserActivities(
       profile!.username,
       panes[data.activeIndex as number].pane.key
@@ -38,7 +38,7 @@ export default observer(function ProfileActivities() {
           <Tab
             menu={{ secondary: true, pointing: true }}
             panes={panes}
-            onTabChange={(e, data) => handleTabChange(e, data)}
+            onTabChange={(_, data) => handleTabChange(data)}
           />
           <br />
 

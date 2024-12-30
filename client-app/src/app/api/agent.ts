@@ -7,7 +7,7 @@ import { User, UserFromValues } from "../models/user";
 import { Photo, Profile, UserActivity } from "../models/profile";
 import { PaginatedResult } from "../models/pagination";
 
-axios.defaults.baseURL = "http://localhost:5000/api";
+axios.defaults.baseURL = import.meta.env.VITE_API_URL;
 
 /* Adding Auth Token to each request using Interceptors */
 
@@ -25,7 +25,7 @@ const sleep = (ms: number) => {
 
 axios.interceptors.response.use(
   async (response) => {
-    await sleep(1000);
+    if (import.meta.env.DEV) await sleep(1000);
     const pagination = response.headers["pagination"];
     if (pagination) {
       response.data = new PaginatedResult(

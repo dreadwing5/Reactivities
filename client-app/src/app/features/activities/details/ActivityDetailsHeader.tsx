@@ -4,7 +4,6 @@ import { Activity } from "../../../models/activity";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { useStore } from "../../../stores/store";
-import zIndex from "@mui/material/styles/zIndex";
 
 const activityImageStyle = {
   filter: "brightness(30%)",

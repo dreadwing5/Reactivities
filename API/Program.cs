@@ -63,6 +63,9 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseCors("CorsPolicy");
 
 // Add HTTP logging middleware
@@ -78,6 +81,7 @@ app.Use(async (context, next) =>
 
 app.MapControllers();
 app.MapHub<ChatHub>("/chat");
+app.MapFallbackToController("Index", "Fallback");
 
 // Cleanup unused code, this will be destroyed once we have used
 
