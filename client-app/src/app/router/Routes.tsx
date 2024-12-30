@@ -31,7 +31,6 @@ export const routes: RouteObject[] = [
         ],
       },
       { path: "login", element: <LoginForm /> },
-
       { path: "not-found", element: <NotFound /> },
       { path: "server-error", element: <ServerError /> },
       { path: "*", element: <Navigate replace to="/not-found" /> },
